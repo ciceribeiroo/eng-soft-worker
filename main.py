@@ -10,15 +10,19 @@ def process_function(msg):
     fName = data.get("fileName")
     rId = data.get("idApp")
 
-    URL = f"http://converter:8000/convert/{bName}/{fName}"
+    try:
+        URL = f"http://converter:8000/convert/{bName}/{fName}"
 
-    r = requests.get(url=URL)
+        r = requests.get(url=URL)
 
-    dataMsg = r.json()
+        dataMsg = r.json()
 
-    if dataMsg.get("message") == "Converted":
-        channel_send.basic_publish(exchange='', routing_key='converter.queue.ready', body=bytes(str(rId), 'utf-8'))
-    else:
+        if dataMsg.get("message") == "Converted":
+            channel_send.basic_publish(exchange='', routing_key='converter.queue.ready', body=bytes(str(rId), 'utf-8'))
+        else:
+            channel_send.basic_publish(exchange='', routing_key='converter.queue.error', body=bytes(str(rId), 'utf-8'))
+
+    except:
         channel_send.basic_publish(exchange='', routing_key='converter.queue.error', body=bytes(str(rId), 'utf-8'))
 
     print("processing finished")
